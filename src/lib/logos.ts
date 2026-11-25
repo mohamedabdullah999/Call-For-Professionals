@@ -13,7 +13,9 @@ export interface LogoFile {
   keepOnDark?: boolean;
 }
 
-export const LOGOS: Record<string, LogoFile> = {
+import { withBasePath } from './base-path';
+
+const FILES: Record<string, LogoFile> = {
   PNU: { src: '/logos/pnu-white.png', width: 900, height: 256, keepOnDark: true },
   // Organisers, white artwork from the "Powered By" row on expertslive.sa/sponsors (Nov 2026)
   'AI in Healthcare Chair': { src: '/logos/rcai-white.png', width: 260, height: 123, mono: true },
@@ -36,3 +38,8 @@ export const LOGOS: Record<string, LogoFile> = {
   Plus: { src: '/logos/plus.png', width: 519, height: 262 },
   Raseel: { src: '/logos/raseel-white.png', width: 197, height: 65, mono: true },
 };
+
+/** Same map with the base path added to each src (next/image does not add it). */
+export const LOGOS: Record<string, LogoFile> = Object.fromEntries(
+  Object.entries(FILES).map(([name, logo]) => [name, { ...logo, src: withBasePath(logo.src) }]),
+);

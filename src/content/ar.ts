@@ -25,6 +25,7 @@ const ar: Content = {
     { label: 'البرنامج', href: '#programme' },
     { label: 'الشركاء', href: '#partners' },
   ],
+  // Plain <a>: the components add the base path
   langSwitch: { label: 'English', href: '/en', lang: 'en' },
   ctaApply: 'قدّم كمتحدث',
   hero: {

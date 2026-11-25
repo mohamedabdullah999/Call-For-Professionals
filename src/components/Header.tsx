@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Content } from '@/content/types';
+import { withBasePath } from '@/lib/base-path';
 import { ButtonLink } from './Button';
 import { ElksaChip } from './Logos';
 import styles from './Header.module.css';
@@ -66,7 +67,7 @@ export function Header({ c }: { c: HeaderCopy }) {
         ))}
       </ul>
       <div className={styles.actions}>
-        <a className={styles.lang} href={c.langSwitch.href} hrefLang={c.langSwitch.lang} lang={c.langSwitch.lang}>
+        <a className={styles.lang} href={withBasePath(c.langSwitch.href)} hrefLang={c.langSwitch.lang} lang={c.langSwitch.lang}>
           {c.langSwitch.label}
           <span className="visually-hidden"> — {c.a11y.switchLanguage}</span>
         </a>

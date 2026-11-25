@@ -1,7 +1,20 @@
+import { basePath, withBasePath } from './base-path';
+
+export { basePath, withBasePath };
+
+/**
+ * Full public URL of the site, base path included and no trailing slash
+ * (e.g. https://global.expertslive.sa/speakerreg). Read at build time from NEXT_PUBLIC_SITE_URL;
+ * the fallback only suits local development.
+ */
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:3000${basePath}`).replace(/\/+$/, '');
+
+/** Absolute URL for a path inside the site: absoluteUrl('/en') → https://…/speakerreg/en */
+export const absoluteUrl = (path: string) => `${siteUrl}${path}`;
+
 /** Facts and links shared by both languages. Source: EXPERTS-LIVE-SAUDI.md and BRIEF.md. */
 export const SITE = {
-  // Set NEXT_PUBLIC_SITE_URL at build time; the fallback only suits local development.
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+  url: siteUrl,
   name: 'Experts Live Saudi 2026',
   // Day 1 opens 09:30 Riyadh time (UTC+3). Day 2 end time is not published.
   eventStart: '2026-11-29T09:30:00+03:00',

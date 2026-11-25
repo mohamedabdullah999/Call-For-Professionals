@@ -1,5 +1,5 @@
 import type { Content } from '@/content/types';
-import { SITE } from '@/lib/site';
+import { SITE, withBasePath } from '@/lib/site';
 import { ElksaChip } from './Logos';
 import styles from './Footer.module.css';
 
@@ -30,7 +30,7 @@ export function Footer({ c }: { c: Content }) {
               </a>
             </li>
             <li>
-              <a href={c.langSwitch.href} hrefLang={c.langSwitch.lang} lang={c.langSwitch.lang}>
+              <a href={withBasePath(c.langSwitch.href)} hrefLang={c.langSwitch.lang} lang={c.langSwitch.lang}>
                 {c.langSwitch.label}
               </a>
             </li>
