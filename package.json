@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:export": "node scripts/export-csv.mjs"
+    "db:export": "node scripts/export-csv.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "next": "^16.4.6",

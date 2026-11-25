@@ -9,7 +9,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Served under a sub-path behind nginx (see deploy/nginx-speakerreg.conf). '' = served from the root.
+  // Served under a sub-path behind Caddy on the company server (docs/DEPLOY.md). '' = served from the root.
   basePath,
   // Same value for client code, even when NEXT_PUBLIC_BASE_PATH was not set at build time
   env: { NEXT_PUBLIC_BASE_PATH: basePath },
