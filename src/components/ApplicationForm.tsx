@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { Content } from '@/content/types';
+import { withBasePath } from '@/lib/base-path';
 import { LIMITS, speakerApplicationSchema, toFieldErrors, type ErrorCode, type FieldName } from '@/lib/applications';
 import { Button } from './Button';
 import styles from './ApplicationForm.module.css';
@@ -75,7 +76,7 @@ export function ApplicationForm({ c }: { c: Pick<Content, 'locale' | 'form'> }) 
     setStatus('submitting');
 
     try {
-      const res = await fetch('/api/applications', {
+      const res = await fetch(withBasePath('/api/applications'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

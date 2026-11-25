@@ -1,0 +1,32 @@
+# Production overrides for the company server (nginx in front, see deploy/nginx-speakerreg.conf).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Values come from .env next to this file (copy .env.production.example). The !override / !reset
+# tags replace the dev port lists instead of appending to them (Docker Compose 2.24+).
+services:
+  db:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    # Database is reachable only from the web container, never from the host or the internet
+    ports: !reset []
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  web:
+    build:
+      args:
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH-/speakerreg}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://global.expertslive.sa/speakerreg}
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-elksa}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-elksa_landing}
+      IP_HASH_SALT: ${IP_HASH_SALT:?set IP_HASH_SALT in .env}
+      # nginx is the only proxy in front of the app
+      TRUSTED_PROXY_HOPS: '1'
+    # Only nginx on the same machine can reach the app
+    ports: !override
+      - '127.0.0.1:3010:3000'
+    logging: *logging

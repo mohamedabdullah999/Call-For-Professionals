@@ -7,7 +7,7 @@ services:
     runtime: docker
     plan: free
     region: frankfurt
-    healthCheckPath: /api/health
+    healthCheckPath: /speakerreg/api/health
     envVars:
       - key: DATABASE_URL
         fromDatabase:

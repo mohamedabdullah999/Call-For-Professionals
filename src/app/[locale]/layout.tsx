@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
 import { getContent } from '@/content';
 import { montserrat, plexArabic, reemKufi } from '@/lib/fonts';
-import { LOCALES, SITE, isLocale } from '@/lib/site';
+import { LOCALES, SITE, absoluteUrl, isLocale, withBasePath } from '@/lib/site';
 import '@/styles/globals.css';
 
 export function generateStaticParams() {
@@ -21,12 +21,13 @@ export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Pr
   if (!isLocale(locale)) return {};
   const c = getContent(locale);
   return {
-    metadataBase: new URL(SITE.url),
+    // Trailing slash so relative URLs resolve inside the base path. Every URL below is absolute anyway.
+    metadataBase: new URL(`${SITE.url}/`),
     title: c.meta.title,
     description: c.meta.description,
     alternates: {
-      canonical: `/${locale}`,
-      languages: { en: '/en', ar: '/ar', 'x-default': '/en' },
+      canonical: absoluteUrl(`/${locale}`),
+      languages: { en: absoluteUrl('/en'), ar: absoluteUrl('/ar'), 'x-default': absoluteUrl('/en') },
     },
     openGraph: {
       type: 'website',
@@ -35,11 +36,11 @@ export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Pr
       description: c.meta.description,
       locale: c.meta.ogLocale,
       alternateLocale: locale === 'en' ? ['ar_SA'] : ['en_US'],
-      url: `/${locale}`,
-      images: [{ url: '/og-call-for-professionals.png', width: 1200, height: 630, alt: c.meta.title }],
+      url: absoluteUrl(`/${locale}`),
+      images: [{ url: absoluteUrl('/og-call-for-professionals.png'), width: 1200, height: 630, alt: c.meta.title }],
     },
-    twitter: { card: 'summary_large_image', title: c.meta.title, description: c.meta.description, images: ['/og-call-for-professionals.png'] },
-    icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
+    twitter: { card: 'summary_large_image', title: c.meta.title, description: c.meta.description, images: [absoluteUrl('/og-call-for-professionals.png')] },
+    icons: { icon: withBasePath('/favicon.png'), apple: withBasePath('/apple-touch-icon.png') },
   };
 }
 

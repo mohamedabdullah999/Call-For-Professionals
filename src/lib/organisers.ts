@@ -9,7 +9,9 @@ export interface OrganiserLogo {
   height: number;
 }
 
-export const ORGANISER_LOGOS: OrganiserLogo[] = [
+import { withBasePath } from './base-path';
+
+const FILES: OrganiserLogo[] = [
   { name: "Princess Nourah bint Abdulrahman University", src: '/logos/organisers/pnu.png', width: 248, height: 150 },
   { name: "AI in Healthcare Research Chair", src: '/logos/organisers/rcai.png', width: 316, height: 150 },
   { name: "Year of AI 2026", src: '/logos/organisers/year-of-ai-2026.png', width: 406, height: 150 },
@@ -57,3 +59,6 @@ export const ORGANISER_LOGOS: OrganiserLogo[] = [
   { name: "STF", src: '/logos/organisers/stf.png', width: 238, height: 150 },
   { name: "Beetleware", src: '/logos/organisers/beetleware.png', width: 276, height: 150 },
 ];
+
+/** Same list with the base path added to each src (next/image does not add it). */
+export const ORGANISER_LOGOS: OrganiserLogo[] = FILES.map((logo) => ({ ...logo, src: withBasePath(logo.src) }));
