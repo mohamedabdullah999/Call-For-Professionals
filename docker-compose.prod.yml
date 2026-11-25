@@ -1,5 +1,5 @@
 # LOCAL USE ONLY: a production-like run (secrets required, app on 127.0.0.1:3010, no DB port).
-# The company server does not use Docker; it runs release/ under systemd (see docs/DEPLOY.md).
+# The company server does not use Docker; it runs release/ with ~/apps/speakerreg/ctl.sh (see docs/DEPLOY.md).
 #
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 #

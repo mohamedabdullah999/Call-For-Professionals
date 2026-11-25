@@ -43,7 +43,7 @@ Production build: `pnpm build && pnpm start` (runs the standalone server).
 
 Everything in Docker: `docker compose up -d --build` (runs migrations on start). Health check: `GET /api/health`.
 
-Production: https://global.expertslive.sa/speakerreg (company server, no Docker). `pnpm release` builds `release/`, `scripts/deploy.sh` uploads it and restarts the `speakerreg` service. See `docs/DEPLOY.md` §4.
+Production: https://global.expertslive.sa/speakerreg (company server, no Docker). `pnpm release` builds `release/`, `scripts/deploy.sh` uploads it to `~/apps/speakerreg/app/` and restarts it with `ctl.sh` (no sudo). See `docs/DEPLOY.md` §4.
 
 Docker files are for local use only. Temporary preview: `render.yaml` is a Render Blueprint (Docker web service + free PostgreSQL). See `docs/DEPLOY.md`.
 

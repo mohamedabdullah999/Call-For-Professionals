@@ -69,76 +69,88 @@ cloudflared tunnel --url http://localhost:3000
 
 ## 4. النشر على سيرفر الشركة
 
-الموقع: **https://global.expertslive.sa/speakerreg**. السيرفر عليه Node 22 و PostgreSQL 17 و Caddy، ومن غير Docker.
+الموقع: **https://global.expertslive.sa/speakerreg**. كل حاجة على السيرفر شغالة باليوزر `mohamed` **من غير sudo**، ومن غير Docker ولا systemd.
 
 ```
 المتصفح → Caddy (handle /speakerreg* → 127.0.0.1:4195، من غير ما يشيل الـprefix)
-        → systemd service «speakerreg» → node server.js في /opt/speakerreg/app
+        → node server.js في ~/apps/speakerreg/app   (بيشغّله ctl.sh)
+        → PostgreSQL 17 خاص بينا على 127.0.0.1:4196
 ```
 
-- الـbuild بيحصل على اللابتوب (Linux x64، نفس معمارية السيرفر)، وبيترفع جاهز. مفيش `pnpm install` ولا build على السيرفر.
-- `pnpm release` بيعمل build بـ`NEXT_PUBLIC_SITE_URL=https://global.expertslive.sa/speakerreg` و`basePath=/speakerreg`، ويجمّع فولدر `release/` فيه: `server.js` والـ`node_modules` اللازمة بس، و`public` و`.next/static`، و`db/migrations` و`scripts/migrate.mjs`، و`release.json` (الـcommit ووقت الـbuild). **من غير `.env`** ومن غير كود المصدر.
-- الـservice بيشغّل `node scripts/migrate.mjs` الأول، وبعدين `node server.js`. يعني الـmigrations بتتطبّق لوحدها مع كل restart.
+### اللي على السيرفر
 
-### المطلوب من الأدمن (مرة واحدة)
+السكريبت `speakerreg-user-setup.sh` اتشغّل مرة واحدة وعمل الآتي:
 
-- داتابيز ويوزر لـPostgreSQL.
-- ملف env للـroot بس، فيه:
-  - `DATABASE_URL=postgres://USER:PASS@127.0.0.1:5432/DB`
-  - `IP_HASH_SALT=` (قيمة عشوائية طويلة: `openssl rand -hex 32`)
-  - `TRUSTED_PROXY_HOPS=1` (Caddy هو الـproxy الوحيد)
-  - `PORT=4195`
-  - `HOSTNAME=127.0.0.1`
-  - `NODE_ENV=production`
-- الـservice `speakerreg` وبلوك Caddy:
+| المسار | إيه هو |
+|---|---|
+| `~/apps/speakerreg/app/` | الـrelease اللي `scripts/deploy.sh` بيرفعه. **أي حاجة تانية هنا بتتمسح مع كل deploy** (`rsync --delete`) |
+| `~/apps/speakerreg/ctl.sh` | `start` · `stop` · `restart` · `status` · `logs [عدد السطور]` |
+| `~/apps/speakerreg/speakerreg.env` | `DATABASE_URL` و`IP_HASH_SALT` و`PORT=4195` و`HOSTNAME=127.0.0.1` و`TRUSTED_PROXY_HOPS=1`… (`chmod 600`، **مش في git**) |
+| `~/apps/speakerreg/pgdata/` | داتا PostgreSQL الخاص بينا (على `127.0.0.1:4196` بس، مش من برّه السيرفر) |
+| `~/apps/speakerreg/logs/` | `app.log` و`pg.log` و`cron.log`. أي ملف يعدّي 10 MB بيتنقل لـ`.1` |
+
+- **`ctl.sh start`** بيشغّل PostgreSQL لو كان واقف، وبعدين `node scripts/migrate.mjs` (الـmigrations بتتطبّق لوحدها)، وبعدين `node server.js`. لو التطبيق شغال أصلًا، مبيعملش حاجة.
+- **الـcrontab (watchdog):** `@reboot` وكمان كل دقيقتين بيشغّل `ctl.sh start`. يعني لو السيرفر عمل restart أو التطبيق وقع، بيقوم لوحده خلال دقيقتين.
+- **من الأدمن:** محتاجين منه بلوك Caddy بس، جوّه موقع `global.expertslive.sa`:
   ```
   handle /speakerreg* {
       reverse_proxy 127.0.0.1:4195
   }
   ```
-- اليوزر `mohamed` يقدر يكتب في `/opt/speakerreg/app/`، ويقدر يشغّل بـ`sudo` من غير باسورد: `systemctl restart|status speakerreg` و`journalctl -u speakerreg`.
 
-### أول نشر
+### النشر (أول مرة وكل تحديث)
 
-```bash
-ssh mohamed@37.221.197.80 'echo ok'     # اتأكد إن الدخول بالـSSH key شغال
-scripts/deploy.sh
-```
-
-السكريبت بيعمل `pnpm release`، وبعدين `rsync --delete` لـ`release/` على `/opt/speakerreg/app/`، وبعدين `restart` للـservice، وبيكلّم `/speakerreg/api/health` على السيرفر. لو أي خطوة فشلت بيقف ويطبع **DEPLOY FAILED** ومكان الغلطة.
-
-### التحديث
-
-بعد أي merge على `main`:
+من اللابتوب، بعد أي merge على `main`:
 
 ```bash
 git checkout main && git pull
 scripts/deploy.sh
 ```
 
+السكريبت بيعمل:
+1. `pnpm release`
+2. `rsync -az --delete --exclude '.next/cache' release/ mohamed@37.221.197.80:apps/speakerreg/app/`
+3. `~/apps/speakerreg/ctl.sh restart`، وبعدين يكلّم `http://127.0.0.1:4195/speakerreg/api/health`
+
+لو أي خطوة فشلت، بيقف ويطبع **DEPLOY FAILED** ومكان الغلطة. محتاج بس إن الدخول بالـSSH key يكون شغال (`ssh mohamed@37.221.197.80 'echo ok'`).
+
 **الرجوع لنسخة قديمة:** `git checkout <commit>` وبعدين `scripts/deploy.sh`، وبعدين ارجع لـ`main`.
 
-### المتابعة
+### المتابعة (على السيرفر)
 
 ```bash
 ssh mohamed@37.221.197.80
-sudo systemctl status speakerreg --no-pager          # الحالة
-sudo journalctl -u speakerreg --no-pager -n 200      # آخر 200 سطر logs
-cat /opt/speakerreg/app/release.json                 # أنهي commit متنشر دلوقتي
-curl -fsS http://127.0.0.1:4195/speakerreg/api/health
+~/apps/speakerreg/ctl.sh status          # postgres و app شغالين؟ + الـhealth
+~/apps/speakerreg/ctl.sh logs 200        # آخر 200 سطر من app.log
+tail -n 50 ~/apps/speakerreg/logs/pg.log     # logs الداتابيز
+tail -n 20 ~/apps/speakerreg/logs/cron.log   # الـwatchdog
+crontab -l                               # سطرين ctl.sh start (@reboot و */2)
+cat ~/apps/speakerreg/app/release.json   # أنهي commit متنشر دلوقتي
 ```
+
+**إيقاف حقيقي:** `ctl.sh stop` لوحده مش كفاية، لأن الـwatchdog هيشغّله تاني خلال دقيقتين. علّق سطور `ctl.sh` في `crontab -e` الأول، وبعدين `ctl.sh stop`. وعشان ترجّعه: شيل التعليق، و`ctl.sh start`.
+
+### Export الطلبات والـbackup
+
+الداتابيز بتاعتنا، فنقدر نعمل export من غير الأدمن. الأوامر دي بتقرا `DATABASE_URL` من ملف الـenv جوّه subshell، فمبتسيبش الباسورد في الـshell:
+
+```bash
+# CSV بكل الطلبات
+( set -a; . ~/apps/speakerreg/speakerreg.env; set +a
+  /usr/lib/postgresql/17/bin/psql "$DATABASE_URL" -c "\copy (SELECT * FROM speaker_applications ORDER BY created_at DESC) TO STDOUT CSV HEADER" ) > ~/speakers-$(date +%F).csv
+
+# backup كامل للداتابيز
+( set -a; . ~/apps/speakerreg/speakerreg.env; set +a
+  /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" -Fc ) > ~/speakerreg-$(date +%F).dump
+```
+
+وبعدين نزّل الملف على جهازك: `scp mohamed@37.221.197.80:speakers-YYYY-MM-DD.csv .`
+
+- `psql` و`pg_dump` المفروض يكونوا موجودين جنب `initdb` في `/usr/lib/postgresql/17/bin/` (من الباكدج `postgresql-client-17`). لسه ما اتأكدناش منهم على السيرفر.
+- **الـbackup مسؤوليتنا:** دي instance خاصة، والـbackup بتاع الأدمن مش بيغطيها. اعمل `pg_dump` بشكل دوري، أو ضيفه في الـcrontab.
 
 ### ملاحظات
 
 - `NEXT_PUBLIC_SITE_URL` والـbasePath بيتحطّوا وقت الـbuild، فأي تغيير فيهم محتاج `scripts/deploy.sh` تاني. لو حبيت تغيّرهم: `RELEASE_SITE_URL=… RELEASE_BASE_PATH=… scripts/deploy.sh`، والـbasePath لازم يطابق بلوك Caddy.
-- الـ`.env` اللي على اللابتوب **مش بيترفع**. Next بينسخه جوّه `.next/standalone`، و`pnpm release` بيمسحه وبيرفض يكمّل لو لقى أي ملف `.env`.
-- `rsync --delete` بيمسح أي حاجة في `/opt/speakerreg/app/` مش موجودة في `release/`، فما تحطّش أي ملفات تانية في الفولدر ده.
-
-### Export الطلبات (open item)
-
-`mohamed` ما عندوش `psql` على السيرفر. لحد ما يتحل:
-- اطلب من الأدمن export لجدول `speaker_applications`، مثلًا:
-  ```bash
-  sudo -u postgres psql -d DB -c "\copy (SELECT * FROM speaker_applications ORDER BY created_at DESC) TO STDOUT CSV HEADER" > speakers.csv
-  ```
-- أو نعمل بعدين صفحة admin محمية فيها زرار export.
+- الـ`.env` اللي على اللابتوب **مش بيترفع**. `pnpm release` بيمسح الـ`.env` اللي Next بينسخه، وبيرفض يكمّل لو لقى أي ملف `.env`. إعدادات السيرفر في `speakerreg.env` بس.
+- `ctl.sh` بيستخدم lock، فالـwatchdog والـdeploy مش هيشغّلوا نسختين من التطبيق في نفس الوقت.
