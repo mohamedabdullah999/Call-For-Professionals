@@ -7,7 +7,7 @@
 | `Dockerfile` | وصفة بناء الـ**image**: بيسطّب الـpackages، ويعمل build، ويطلّع image صغيرة فيها السيرفر بس |
 | `docker-compose.yml` | بيشغّل **container** للتطبيق و**container** لـ PostgreSQL مع بعض، ويربطهم ببعض |
 | `.dockerignore` | الملفات اللي ما تدخلش الـimage (`node_modules` · `.env` · `.git`) |
-| `/api/health` | Docker بيسأله كل 30 ثانية: «إنت شغال؟ والداتابيز شغالة؟» |
+| `/speakerreg/api/health` | Docker بيسأله كل 30 ثانية: «إنت شغال؟ والداتابيز شغالة؟» |
 
 **الـDockerfile مقسوم 3 مراحل (multi-stage):**
 
@@ -22,7 +22,7 @@ run    ← node:22-alpine + standalone  ← الـimage النهائية، من 
 ### الأوامر
 
 ```bash
-docker compose up -d --build     # يبني ويشغّل كل حاجة → http://localhost:3000
+docker compose up -d --build     # يبني ويشغّل كل حاجة → http://localhost:3000/speakerreg
 docker compose ps                # الحالة (لازم web يبقى healthy)
 docker compose logs -f web       # الـlogs
 docker compose down              # يقفل (البيانات بتفضل محفوظة في volume)
@@ -64,3 +64,51 @@ cloudflared tunnel --url http://localhost:3000
 ## 3. قبل الـproduction الحقيقي
 
 شوف قسم «مطلوب وقت الـdeploy» في `docs/TEST-REPORT.md`: HTTPS و HSTS، والدومين، و`IP_HASH_SALT`، والـbackup.
+
+## 4. Deploy on company server
+
+الموقع هيشتغل على **https://global.expertslive.sa/speakerreg**، ورا الـnginx الموجود على سيرفر Debian.
+
+**الفكرة:**
+- الأبلكيشن متعمل build بـ`basePath` قيمته `/speakerreg`، يعني كل الصفحات والصور والـAPI بتبدأ بـ`/speakerreg`.
+- nginx بيبعت `location /speakerreg` زي ما هو (من غير ما يغيّر الـpath) لـ`127.0.0.1:3010`.
+- البورت `3010` مفتوح على `127.0.0.1` بس، والداتابيز مش مفتوحة برّه الـcontainers خالص.
+
+**أول مرة:**
+
+```bash
+git clone https://github.com/mohamedabdullah999/Call-For-Professionals.git speakerreg
+cd speakerreg
+cp .env.production.example .env
+openssl rand -hex 24   # حطّه في POSTGRES_PASSWORD
+openssl rand -hex 32   # حطّه في IP_HASH_SALT
+nano .env && chmod 600 .env
+
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps   # web لازم يبقى healthy
+curl -I http://127.0.0.1:3010/speakerreg                             # 307 → /speakerreg/ar أو /en
+```
+
+**nginx:** انسخ محتوى `deploy/nginx-speakerreg.conf` جوّه بلوك `server` بتاع `global.expertslive.sa` (بتاع HTTPS)، وبعدين:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**تحديث بعد أي merge على main:**
+
+```bash
+git pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+الـmigrations بتشتغل لوحدها مع كل تشغيل للـcontainer.
+
+**ملاحظات:**
+- `NEXT_PUBLIC_SITE_URL` و`NEXT_PUBLIC_BASE_PATH` بيتقروا وقت الـ**build**. لو غيّرت أي واحد فيهم لازم `--build` تاني، وقيمة `NEXT_PUBLIC_BASE_PATH` لازم تطابق الـ`location` في nginx.
+- خلّي اسم الملف `.env`، لأنه متجاهَل في git وفي Docker. ما تعملش `.env.production`.
+- `POSTGRES_PASSWORD` بيدخل جوّه URL، فخلّيه حروف وأرقام بس (`openssl rand -hex` بيطلّع كده).
+- Export للطلبات: `docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T db psql -U elksa -d elksa_landing -c "\copy (SELECT * FROM speaker_applications ORDER BY created_at DESC) TO STDOUT CSV HEADER" > speakers.csv`
+- الـlogs: `docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f web` (كل ملف log أقصاه 10 MB).
+- الـrate limit بيعتمد على `X-Forwarded-For` اللي nginx بيضيفه (`TRUSTED_PROXY_HOPS=1`). لو اتحط CDN أو proxy تاني قدّام nginx، زوّد الرقم.
+
