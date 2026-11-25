@@ -1,4 +1,6 @@
-# Deploy — Docker والنشر المؤقت
+# Deploy — Docker والنشر
+
+> **السيرفر الحقيقي ما فيهوش Docker.** النشر عليه في القسم 4 (`pnpm release` + `scripts/deploy.sh`). ملفات Docker للتشغيل المحلي بس.
 
 ## 1. الـDocker في مشروعنا
 
@@ -65,50 +67,78 @@ cloudflared tunnel --url http://localhost:3000
 
 شوف قسم «مطلوب وقت الـdeploy» في `docs/TEST-REPORT.md`: HTTPS و HSTS، والدومين، و`IP_HASH_SALT`، والـbackup.
 
-## 4. Deploy on company server
+## 4. النشر على سيرفر الشركة
 
-الموقع هيشتغل على **https://global.expertslive.sa/speakerreg**، ورا الـnginx الموجود على سيرفر Debian.
+الموقع: **https://global.expertslive.sa/speakerreg**. السيرفر عليه Node 22 و PostgreSQL 17 و Caddy، ومن غير Docker.
 
-**الفكرة:**
-- الأبلكيشن متعمل build بـ`basePath` قيمته `/speakerreg`، يعني كل الصفحات والصور والـAPI بتبدأ بـ`/speakerreg`.
-- nginx بيبعت `location /speakerreg` زي ما هو (من غير ما يغيّر الـpath) لـ`127.0.0.1:3010`.
-- البورت `3010` مفتوح على `127.0.0.1` بس، والداتابيز مش مفتوحة برّه الـcontainers خالص.
-
-**أول مرة:**
-
-```bash
-git clone https://github.com/mohamedabdullah999/Call-For-Professionals.git speakerreg
-cd speakerreg
-cp .env.production.example .env
-openssl rand -hex 24   # حطّه في POSTGRES_PASSWORD
-openssl rand -hex 32   # حطّه في IP_HASH_SALT
-nano .env && chmod 600 .env
-
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps   # web لازم يبقى healthy
-curl -I http://127.0.0.1:3010/speakerreg                             # 307 → /speakerreg/ar أو /en
+```
+المتصفح → Caddy (handle /speakerreg* → 127.0.0.1:4195، من غير ما يشيل الـprefix)
+        → systemd service «speakerreg» → node server.js في /opt/speakerreg/app
 ```
 
-**nginx:** انسخ محتوى `deploy/nginx-speakerreg.conf` جوّه بلوك `server` بتاع `global.expertslive.sa` (بتاع HTTPS)، وبعدين:
+- الـbuild بيحصل على اللابتوب (Linux x64، نفس معمارية السيرفر)، وبيترفع جاهز. مفيش `pnpm install` ولا build على السيرفر.
+- `pnpm release` بيعمل build بـ`NEXT_PUBLIC_SITE_URL=https://global.expertslive.sa/speakerreg` و`basePath=/speakerreg`، ويجمّع فولدر `release/` فيه: `server.js` والـ`node_modules` اللازمة بس، و`public` و`.next/static`، و`db/migrations` و`scripts/migrate.mjs`، و`release.json` (الـcommit ووقت الـbuild). **من غير `.env`** ومن غير كود المصدر.
+- الـservice بيشغّل `node scripts/migrate.mjs` الأول، وبعدين `node server.js`. يعني الـmigrations بتتطبّق لوحدها مع كل restart.
+
+### المطلوب من الأدمن (مرة واحدة)
+
+- داتابيز ويوزر لـPostgreSQL.
+- ملف env للـroot بس، فيه:
+  - `DATABASE_URL=postgres://USER:PASS@127.0.0.1:5432/DB`
+  - `IP_HASH_SALT=` (قيمة عشوائية طويلة: `openssl rand -hex 32`)
+  - `TRUSTED_PROXY_HOPS=1` (Caddy هو الـproxy الوحيد)
+  - `PORT=4195`
+  - `HOSTNAME=127.0.0.1`
+  - `NODE_ENV=production`
+- الـservice `speakerreg` وبلوك Caddy:
+  ```
+  handle /speakerreg* {
+      reverse_proxy 127.0.0.1:4195
+  }
+  ```
+- اليوزر `mohamed` يقدر يكتب في `/opt/speakerreg/app/`، ويقدر يشغّل بـ`sudo` من غير باسورد: `systemctl restart|status speakerreg` و`journalctl -u speakerreg`.
+
+### أول نشر
 
 ```bash
-sudo nginx -t && sudo systemctl reload nginx
+ssh mohamed@37.221.197.80 'echo ok'     # اتأكد إن الدخول بالـSSH key شغال
+scripts/deploy.sh
 ```
 
-**تحديث بعد أي merge على main:**
+السكريبت بيعمل `pnpm release`، وبعدين `rsync --delete` لـ`release/` على `/opt/speakerreg/app/`، وبعدين `restart` للـservice، وبيكلّم `/speakerreg/api/health` على السيرفر. لو أي خطوة فشلت بيقف ويطبع **DEPLOY FAILED** ومكان الغلطة.
+
+### التحديث
+
+بعد أي merge على `main`:
 
 ```bash
-git pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+git checkout main && git pull
+scripts/deploy.sh
 ```
 
-الـmigrations بتشتغل لوحدها مع كل تشغيل للـcontainer.
+**الرجوع لنسخة قديمة:** `git checkout <commit>` وبعدين `scripts/deploy.sh`، وبعدين ارجع لـ`main`.
 
-**ملاحظات:**
-- `NEXT_PUBLIC_SITE_URL` و`NEXT_PUBLIC_BASE_PATH` بيتقروا وقت الـ**build**. لو غيّرت أي واحد فيهم لازم `--build` تاني، وقيمة `NEXT_PUBLIC_BASE_PATH` لازم تطابق الـ`location` في nginx.
-- خلّي اسم الملف `.env`، لأنه متجاهَل في git وفي Docker. ما تعملش `.env.production`.
-- `POSTGRES_PASSWORD` بيدخل جوّه URL، فخلّيه حروف وأرقام بس (`openssl rand -hex` بيطلّع كده).
-- Export للطلبات: `docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T db psql -U elksa -d elksa_landing -c "\copy (SELECT * FROM speaker_applications ORDER BY created_at DESC) TO STDOUT CSV HEADER" > speakers.csv`
-- الـlogs: `docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f web` (كل ملف log أقصاه 10 MB).
-- الـrate limit بيعتمد على `X-Forwarded-For` اللي nginx بيضيفه (`TRUSTED_PROXY_HOPS=1`). لو اتحط CDN أو proxy تاني قدّام nginx، زوّد الرقم.
+### المتابعة
 
+```bash
+ssh mohamed@37.221.197.80
+sudo systemctl status speakerreg --no-pager          # الحالة
+sudo journalctl -u speakerreg --no-pager -n 200      # آخر 200 سطر logs
+cat /opt/speakerreg/app/release.json                 # أنهي commit متنشر دلوقتي
+curl -fsS http://127.0.0.1:4195/speakerreg/api/health
+```
+
+### ملاحظات
+
+- `NEXT_PUBLIC_SITE_URL` والـbasePath بيتحطّوا وقت الـbuild، فأي تغيير فيهم محتاج `scripts/deploy.sh` تاني. لو حبيت تغيّرهم: `RELEASE_SITE_URL=… RELEASE_BASE_PATH=… scripts/deploy.sh`، والـbasePath لازم يطابق بلوك Caddy.
+- الـ`.env` اللي على اللابتوب **مش بيترفع**. Next بينسخه جوّه `.next/standalone`، و`pnpm release` بيمسحه وبيرفض يكمّل لو لقى أي ملف `.env`.
+- `rsync --delete` بيمسح أي حاجة في `/opt/speakerreg/app/` مش موجودة في `release/`، فما تحطّش أي ملفات تانية في الفولدر ده.
+
+### Export الطلبات (open item)
+
+`mohamed` ما عندوش `psql` على السيرفر. لحد ما يتحل:
+- اطلب من الأدمن export لجدول `speaker_applications`، مثلًا:
+  ```bash
+  sudo -u postgres psql -d DB -c "\copy (SELECT * FROM speaker_applications ORDER BY created_at DESC) TO STDOUT CSV HEADER" > speakers.csv
+  ```
+- أو نعمل بعدين صفحة admin محمية فيها زرار export.

@@ -13,7 +13,7 @@ function json(status: number, body: Record<string, unknown>) {
 }
 
 /**
- * The app is meant to run behind one reverse proxy (nginx, Azure, DO load balancer) that appends
+ * The app is meant to run behind one reverse proxy (Caddy on the company server) that appends
  * the real client IP to X-Forwarded-For. Visitors can forge the *start* of that header, so we take
  * the entry added by our own proxy: the last one. Set TRUSTED_PROXY_HOPS if there are more proxies.
  */
