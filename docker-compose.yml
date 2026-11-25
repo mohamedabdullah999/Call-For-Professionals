@@ -1,0 +1,40 @@
+# Full stack: PostgreSQL + the landing page.
+#   docker compose up -d --build     → http://localhost:3000
+#   docker compose up -d db          → only the database (for `pnpm dev`)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-elksa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-elksa}
+      POSTGRES_DB: ${POSTGRES_DB:-elksa_landing}
+    ports:
+      # 5433 on the host so it doesn't clash with a PostgreSQL already installed on the machine
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-elksa}:${POSTGRES_PASSWORD:-elksa}@db:5432/${POSTGRES_DB:-elksa_landing}
+      IP_HASH_SALT: ${IP_HASH_SALT:-change-me}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
+    ports:
+      - '3000:3000'
+
+volumes:
+  pgdata:
