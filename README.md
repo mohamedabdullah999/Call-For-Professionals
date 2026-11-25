@@ -1,4 +1,4 @@
-# Experts Live Saudi 2026 — Call For Professionals
+# Experts Live Saudi 2026 — Call For Professional Speakers
 
 Bilingual (English / Arabic) landing page for **Experts Live Saudi 2026**, 29–30 November 2026, PNU Conference & Convention Center, Riyadh. A call for speakers: one "Apply to speak" form, stored in PostgreSQL. Built from the Startups Demo Day landing page (same design system).
 

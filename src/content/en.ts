@@ -4,9 +4,9 @@ const en: Content = {
   locale: 'en',
   dir: 'ltr',
   meta: {
-    title: 'Call For Professionals | Experts Live Saudi 2026, 29–30 Nov, Riyadh',
+    title: 'Call For Professional Speakers | Experts Live Saudi 2026, 29–30 Nov, Riyadh',
     description:
-      'Call For Professionals: apply to speak at Experts Live Saudi 2026, 29–30 November at PNU Conference & Convention Center, Riyadh. Share your expertise and the conference topics you can speak about.',
+      'Call For Professional Speakers: apply to speak at Experts Live Saudi 2026, 29–30 November at PNU Conference & Convention Center, Riyadh. Share your expertise and the conference topics you can speak about.',
     ogLocale: 'en_US',
   },
   a11y: {
@@ -29,8 +29,8 @@ const en: Content = {
   ctaApply: 'Apply to speak',
   hero: {
     kicker: 'Experts Live Saudi 2026',
-    titleLines: ['Call For', 'Professionals'],
-    lead: 'At Experts Live Saudi 2026, startups pitch to investors.',
+    titleLines: ['Call For', 'Professional Speakers'],
+    lead: 'Experts Live Saudi 2026 is looking for speakers. Share your expertise with 1,000+ attendees in Riyadh.',
     tagline: 'Learn. Share. Lead.',
     dateLabel: 'When',
     date: '29–30 November 2026',
@@ -52,7 +52,7 @@ const en: Content = {
     { value: '8', label: 'hands-on lab rooms' },
   ],
   apply: {
-    label: 'Call For Professionals',
+    label: 'Call For Professional Speakers',
     heading: 'Apply to speak at Experts Live Saudi 2026',
     intro:
       'Tell us who you are, what you specialise in and which of the conference topics you can speak about. The six tracks are listed further down the page.',
@@ -78,8 +78,8 @@ const en: Content = {
         hint: 'The link to your public LinkedIn profile.',
       },
       bio: {
-        label: 'Short bio & topics',
-        hint: 'A short bio and the conference topics you can speak about, 50 to 1,500 characters.',
+        label: 'Short bio & topics of interest',
+        hint: 'A short bio and the conference topics you’re interested in speaking about, 50 to 1,500 characters.',
       },
     },
     counter: {
@@ -103,12 +103,6 @@ const en: Content = {
       rateLimited: 'Too many attempts from this connection. Wait a minute, then try again.',
       server: 'Couldn’t save your details. Try again, or email hany@expertslive.sa.',
     },
-  },
-  superNourah: {
-    time: '10:30',
-    when: 'Day 1, Red Hall',
-    heading: 'Super Nourah, unveiled live',
-    body: 'Princess Nourah bint Abdulrahman University unveils Super Nourah, the region’s first research supercomputer, live on the Experts Live Saudi stage.',
   },
   programme: {
     heading: 'Six tracks on the digital economy',

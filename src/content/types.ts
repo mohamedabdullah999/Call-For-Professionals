@@ -112,12 +112,6 @@ export interface Content {
       server: string;
     };
   };
-  superNourah: {
-    time: string;
-    when: string;
-    heading: string;
-    body: string;
-  };
   programme: {
     heading: string;
     intro: string;
