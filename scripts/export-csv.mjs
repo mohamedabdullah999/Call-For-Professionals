@@ -1,4 +1,4 @@
-// Exports applications to exports/applications-<date>.csv. Usage: pnpm db:export [startup|investor]
+// Exports speaker applications to exports/speaker-applications-<date>.csv. Usage: pnpm db:export
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import pg from 'pg';
@@ -15,38 +15,27 @@ if (!url) {
   console.error('DATABASE_URL is not set');
   process.exit(1);
 }
-const kind = process.argv[2];
-if (kind && !['startup', 'investor'].includes(kind)) {
-  console.error('kind must be "startup" or "investor"');
-  process.exit(1);
-}
+
+const columns = ['id', 'created_at', 'full_name', 'job_title', 'expertise', 'company', 'linkedin_url', 'bio', 'locale'];
 
 const client = new pg.Client({ connectionString: url });
 await client.connect();
-const { rows } = await client.query(
-  `SELECT id, kind, status, created_at, full_name, email, phone, organisation, pitch_deck_url, locale, details
-     FROM applications ${kind ? 'WHERE kind = $1' : ''} ORDER BY created_at DESC`,
-  kind ? [kind] : [],
-);
+const { rows } = await client.query(`SELECT ${columns.join(', ')} FROM speaker_applications ORDER BY created_at DESC`);
 await client.end();
 
-const detailKeys = [...new Set(rows.flatMap((r) => Object.keys(r.details ?? {})))].sort();
-const header = ['id', 'kind', 'status', 'created_at', 'full_name', 'email', 'phone', 'organisation', 'pitch_deck_url', 'locale', ...detailKeys];
 const cell = (v) => {
   if (v === null || v === undefined) return '';
-  const s = Array.isArray(v) ? v.join('; ') : v instanceof Date ? v.toISOString() : String(v);
+  const s = v instanceof Date ? v.toISOString() : String(v);
   // Quote, escape quotes and neutralise spreadsheet formulas
-  const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+  const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
   return `"${safe.replace(/"/g, '""')}"`;
 };
-const lines = [header.join(',')];
-for (const r of rows) {
-  lines.push(header.map((h) => cell(h in r ? r[h] : r.details?.[h])).join(','));
-}
+const lines = [columns.join(',')];
+for (const r of rows) lines.push(columns.map((c) => cell(r[c])).join(','));
 
 const outDir = path.resolve(import.meta.dirname, '..', 'exports');
 await mkdir(outDir, { recursive: true });
-const file = path.join(outDir, `applications-${kind ?? 'all'}-${new Date().toISOString().slice(0, 10)}.csv`);
+const file = path.join(outDir, `speaker-applications-${new Date().toISOString().slice(0, 10)}.csv`);
 // BOM so Excel opens Arabic text correctly
-await writeFile(file, '﻿' + lines.join('\n'), 'utf8');
+await writeFile(file, '﻿' + lines.join('\r\n'), 'utf8');
 console.log(`wrote ${rows.length} rows to ${file}`);
