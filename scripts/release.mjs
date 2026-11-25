@@ -2,8 +2,8 @@
 //
 // release/ = .next/standalone (server.js + traced node_modules) + public + .next/static
 //          + db/migrations + scripts/migrate.mjs
-// No .env, no source, no dev dependencies. The server runs it with:
-//   node scripts/migrate.mjs && node server.js   (env from the systemd EnvironmentFile)
+// No .env, no source, no dev dependencies. On the server, ~/apps/speakerreg/ctl.sh runs it with
+// the env from ~/apps/speakerreg/speakerreg.env:  node scripts/migrate.mjs, then node server.js
 import { execFileSync } from 'node:child_process';
 import { cp, mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -44,7 +44,7 @@ for (const name of await readdir(out)) {
   if (name.startsWith('.env')) await rm(path.join(out, name), { force: true });
 }
 
-// What exactly is deployed (shown by: cat /opt/speakerreg/app/release.json)
+// What exactly is deployed (on the server: cat ~/apps/speakerreg/app/release.json)
 let commit = 'unknown';
 try {
   commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root }).toString().trim();
