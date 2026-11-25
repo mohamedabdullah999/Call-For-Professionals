@@ -1,5 +1,4 @@
 import type { Content } from '@/content/types';
-import { SITE } from '@/lib/site';
 import { ButtonLink } from './Button';
 import styles from './PartnerCta.module.css';
 
@@ -15,9 +14,7 @@ export function PartnerCta({ c }: { c: Content }) {
           <p className={styles.body}>{p.body}</p>
         </div>
         <div className={styles.ctas}>
-          <ButtonLink href={SITE.links.freeTicket} external newTabLabel={c.a11y.opensNewTab}>
-            {p.freeTicket}
-          </ButtonLink>
+          <ButtonLink href="#apply">{c.ctaApply}</ButtonLink>
         </div>
       </div>
     </section>

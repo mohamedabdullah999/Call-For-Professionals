@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { applicationSchema, toFieldErrors, type Application } from '@/lib/applications';
+import { speakerApplicationSchema, toFieldErrors } from '@/lib/applications';
 import { getPool } from '@/lib/db';
 import { isRateLimited } from '@/lib/rate-limit';
 
@@ -52,26 +52,6 @@ function hashIp(ip: string): string {
   return createHash('sha256').update(`${salt}:${ip}`).digest('hex');
 }
 
-function toRow(app: Application) {
-  if (app.kind === 'startup') {
-    return {
-      organisation: app.startupName,
-      pitchDeckUrl: app.pitchDeck,
-      details: {
-        website: app.website,
-        sector: app.sector,
-        stage: app.stage,
-        pitch: app.pitch,
-      },
-    };
-  }
-  return {
-    organisation: app.organisation,
-    pitchDeckUrl: null,
-    details: { role: app.role, investorType: app.investorType },
-  };
-}
-
 export async function POST(req: NextRequest) {
   const contentLength = Number(req.headers.get('content-length') ?? 0);
   if (contentLength > MAX_BODY_BYTES) return json(413, { ok: false, error: 'too_large' satisfies ApiError });
@@ -90,7 +70,7 @@ export async function POST(req: NextRequest) {
     return json(400, { ok: false, error: 'invalid' satisfies ApiError, fields: {} });
   }
 
-  const parsed = applicationSchema.safeParse(body);
+  const parsed = speakerApplicationSchema.safeParse(body);
   if (!parsed.success) {
     return json(422, { ok: false, error: 'invalid' satisfies ApiError, fields: toFieldErrors(parsed.error) });
   }
@@ -100,29 +80,26 @@ export async function POST(req: NextRequest) {
   // Honeypot filled: pretend success so bots learn nothing, store nothing.
   if (app.company_url) return json(201, { ok: true });
 
-  const { organisation, pitchDeckUrl, details } = toRow(app);
-
   try {
     await getPool().query(
-      `INSERT INTO applications
-         (kind, full_name, email, phone, organisation, locale, details, consent_at, ip_hash, user_agent, pitch_deck_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, now(), $8, $9, $10)`,
+      `INSERT INTO speaker_applications
+         (full_name, job_title, expertise, company, linkedin_url, bio, locale, ip_hash, user_agent)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
-        app.kind,
         app.fullName,
-        app.email.toLowerCase(),
-        app.phone,
-        organisation,
+        app.jobTitle,
+        app.expertise,
+        app.company,
+        app.linkedinUrl,
+        app.bio,
         app.locale,
-        JSON.stringify(details),
         ipHash,
         req.headers.get('user-agent')?.slice(0, 400) ?? null,
-        pitchDeckUrl,
       ],
     );
   } catch (err) {
     const detail = describeDbError(err);
-    console.error(`[applications] insert failed: ${detail}`);
+    console.error(`[speaker_applications] insert failed: ${detail}`);
     // In development, return the reason so it shows in the browser's Network tab
     return json(500, {
       ok: false,
@@ -139,7 +116,7 @@ function describeDbError(err: unknown): string {
   const e = err as { code?: string; message?: string };
   if (e?.message?.includes('DATABASE_URL is not set')) return 'DATABASE_URL is not set. Copy .env.example to .env and restart the server.';
   if (e?.code === 'ECONNREFUSED') return 'PostgreSQL is not running or not reachable at DATABASE_URL. Start it (docker compose up -d db).';
-  if (e?.code === '42P01') return 'Table "applications" does not exist. Run: pnpm db:migrate';
+  if (e?.code === '42P01') return 'Table "speaker_applications" does not exist. Run: pnpm db:migrate';
   if (e?.code === '28P01') return 'Wrong database user or password in DATABASE_URL.';
   if (e?.code === '3D000') return 'Database in DATABASE_URL does not exist. Create it or use docker compose up -d db.';
   return e?.message ?? String(err);

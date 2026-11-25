@@ -5,33 +5,6 @@
  */
 export type Locale = 'en' | 'ar';
 
-export type PersonaId =
-  | 'founder'
-  | 'investor'
-  | 'tech-leader'
-  | 'executive'
-  | 'government'
-  | 'it-pro'
-  | 'educator'
-  | 'graduate';
-
-export type FormKind = 'startup' | 'investor';
-
-export interface Option {
-  value: string;
-  label: string;
-}
-
-export interface Persona {
-  id: PersonaId;
-  label: string;
-  examples: string;
-  start: string;
-  meet: string;
-  leave: string;
-  cta: { label: string; href: string; form?: FormKind };
-}
-
 export interface Track {
   name: string;
   topics: string;
@@ -76,7 +49,8 @@ export interface Content {
   };
   nav: { label: string; href: string }[];
   langSwitch: { label: string; href: string; lang: Locale };
-  ctaTicket: string;
+  /** Label of every CTA on the page; all of them link to the form (#apply) */
+  ctaApply: string;
   hero: {
     kicker: string;
     titleLines: [string, string];
@@ -87,7 +61,6 @@ export interface Content {
     days: string;
     venueLabel: string;
     venue: string;
-    ctaSecondary: string;
   };
   countdown: {
     live: string;
@@ -96,58 +69,43 @@ export interface Content {
     daysToGo: { one: string; two?: string; few?: string; many: string };
   };
   facts: { value: string; label: string }[];
-  paths: {
+  apply: {
+    label: string;
     heading: string;
     intro: string;
-    listLabel: string;
-    steps: { start: string; meet: string; leave: string };
-    personas: Persona[];
-  };
-  demoDay: {
-    heading: string;
-    intro: string;
-    facts: { term: string; detail: string }[];
     stepsHeading: string;
     steps: string[];
   };
   form: {
     heading: string;
-    switchLabel: string;
-    kinds: Record<FormKind, { tab: string; intro: string; submit: string; successTitle: string }>;
+    intro: string;
     fields: {
       fullName: FieldCopy;
-      email: FieldCopy;
-      phone: FieldCopy;
-      startupName: FieldCopy;
-      website: FieldCopy;
-      pitchDeck: FieldCopy;
-      sector: FieldCopy;
-      stage: FieldCopy;
-      pitch: FieldCopy;
-      organisation: FieldCopy;
-      role: FieldCopy;
-      investorType: FieldCopy;
-      consent: FieldCopy;
+      jobTitle: FieldCopy;
+      expertise: FieldCopy;
+      company: FieldCopy;
+      linkedinUrl: FieldCopy;
+      bio: FieldCopy;
     };
-    selectPlaceholder: string;
-    optional: string;
-    sectors: Option[];
-    stages: Option[];
-    investorTypes: Option[];
+    counter: {
+      /** {n} is the number of characters still needed to reach the minimum */
+      belowMin: string;
+      /** {n} is the current length, {max} the limit */
+      count: string;
+    };
+    submit: string;
     sending: string;
-    /** {email} is replaced with the address the person entered */
+    successTitle: string;
     successBody: string;
     sendAnother: string;
     privacyNote: string;
     errors: {
       required: string;
-      email: string;
-      phone: string;
-      url: string;
+      /** {min} is replaced with the minimum length */
+      tooShort: string;
       /** {max} is replaced with the character limit */
       tooLong: string;
-      consent: string;
-      chooseOne: string;
+      linkedin: string;
       summary: string;
       network: string;
       rateLimited: string;
@@ -159,7 +117,6 @@ export interface Content {
     when: string;
     heading: string;
     body: string;
-    cta: string;
   };
   programme: {
     heading: string;
@@ -183,7 +140,6 @@ export interface Content {
   partnerCta: {
     heading: string;
     body: string;
-    freeTicket: string;
   };
   footer: {
     line: string;

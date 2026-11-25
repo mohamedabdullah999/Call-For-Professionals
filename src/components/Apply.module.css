@@ -5,7 +5,7 @@
   border-top: 1px solid var(--rule);
 }
 
-/* A thin cyan line marks the section the founder/investor CTAs lead to */
+/* A thin cyan line marks the section every CTA leads to */
 .section::before {
   content: '';
   position: absolute;
@@ -44,28 +44,6 @@
   font-size: var(--fs-md);
 }
 
-.facts {
-  border-top: 1px solid var(--rule);
-}
-
-.fact {
-  display: grid;
-  grid-template-columns: 11rem 1fr;
-  gap: var(--space-4);
-  padding-block: var(--space-4);
-  border-bottom: 1px solid var(--rule);
-}
-
-.fact dt {
-  color: var(--muted);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-}
-
-.fact dd {
-  color: var(--text);
-}
-
 .stepsHeading {
   font-size: var(--fs-md);
   font-weight: 700;
@@ -97,12 +75,5 @@
 @media (max-width: 959px) {
   .grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 559px) {
-  .fact {
-    grid-template-columns: 1fr;
-    gap: var(--space-1);
   }
 }
