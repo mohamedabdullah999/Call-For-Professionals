@@ -36,9 +36,9 @@ export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Pr
       locale: c.meta.ogLocale,
       alternateLocale: locale === 'en' ? ['ar_SA'] : ['en_US'],
       url: `/${locale}`,
-      images: [{ url: '/og-demo-day.png', width: 1200, height: 630, alt: c.meta.title }],
+      images: [{ url: '/og-call-for-professionals.png', width: 1200, height: 630, alt: c.meta.title }],
     },
-    twitter: { card: 'summary_large_image', title: c.meta.title, description: c.meta.description, images: ['/og-demo-day.png'] },
+    twitter: { card: 'summary_large_image', title: c.meta.title, description: c.meta.description, images: ['/og-call-for-professionals.png'] },
     icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
   };
 }
