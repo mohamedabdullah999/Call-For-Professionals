@@ -13,7 +13,7 @@ RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Public URL is baked into canonical links, Open Graph and the sitemap at build time
-ARG NEXT_PUBLIC_SITE_URL=https://expertslive.sa
+ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 

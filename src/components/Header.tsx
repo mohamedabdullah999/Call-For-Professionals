@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Content } from '@/content/types';
-import { SITE } from '@/lib/site';
 import { ButtonLink } from './Button';
 import { ElksaChip } from './Logos';
 import styles from './Header.module.css';
 
-export type HeaderCopy = Pick<Content, 'dir' | 'a11y' | 'nav' | 'langSwitch' | 'ctaTicket'>;
+export type HeaderCopy = Pick<Content, 'dir' | 'a11y' | 'nav' | 'langSwitch' | 'ctaApply'>;
 
 export function Header({ c }: { c: HeaderCopy }) {
   const [scrolled, setScrolled] = useState(false);
@@ -71,8 +70,8 @@ export function Header({ c }: { c: HeaderCopy }) {
           {c.langSwitch.label}
           <span className="visually-hidden"> — {c.a11y.switchLanguage}</span>
         </a>
-        <ButtonLink href={SITE.links.tickets} external newTabLabel={c.a11y.opensNewTab} size="small">
-          {c.ctaTicket}
+        <ButtonLink href="#apply" size="small" onClick={close}>
+          {c.ctaApply}
         </ButtonLink>
       </div>
     </nav>

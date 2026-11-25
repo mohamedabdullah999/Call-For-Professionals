@@ -1,6 +1,7 @@
 /** Facts and links shared by both languages. Source: EXPERTS-LIVE-SAUDI.md and BRIEF.md. */
 export const SITE = {
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://expertslive.sa',
+  // Set NEXT_PUBLIC_SITE_URL at build time; the fallback only suits local development.
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
   name: 'Experts Live Saudi 2026',
   // Day 1 opens 09:30 Riyadh time (UTC+3). Day 2 end time is not published.
   eventStart: '2026-11-29T09:30:00+03:00',

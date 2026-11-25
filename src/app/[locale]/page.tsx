@@ -4,8 +4,7 @@ import { isLocale, SITE } from '@/lib/site';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { Facts } from '@/components/Facts';
-import { Paths } from '@/components/Paths';
-import { DemoDay } from '@/components/DemoDay';
+import { Apply } from '@/components/Apply';
 import { SuperNourah } from '@/components/SuperNourah';
 import { Programme } from '@/components/Programme';
 import { Partners } from '@/components/Partners';
@@ -59,12 +58,11 @@ export default async function Page({ params }: PageProps<'/[locale]'>) {
 
   return (
     <>
-      <Header c={{ dir: c.dir, a11y: c.a11y, nav: c.nav, langSwitch: c.langSwitch, ctaTicket: c.ctaTicket }} />
+      <Header c={{ dir: c.dir, a11y: c.a11y, nav: c.nav, langSwitch: c.langSwitch, ctaApply: c.ctaApply }} />
       <main id="main" tabIndex={-1}>
         <Hero c={c} en={getContent('en')} ar={getContent('ar')} />
         <Facts c={c} />
-        <DemoDay c={c} />
-        <Paths c={{ dir: c.dir, paths: c.paths, a11y: c.a11y }} />
+        <Apply c={c} />
         <SuperNourah c={c} />
         <Programme c={c} />
         {/* Speakers slot: the section is removed for now and will be replaced with new content here (src/components/Speakers.tsx kept for reference). */}
@@ -72,7 +70,7 @@ export default async function Page({ params }: PageProps<'/[locale]'>) {
         <PartnerCta c={c} />
       </main>
       <Footer c={c} />
-      <MobileBar c={{ a11y: c.a11y, mobileBar: c.mobileBar, ctaTicket: c.ctaTicket }} />
+      <MobileBar c={{ mobileBar: c.mobileBar, ctaApply: c.ctaApply }} />
       <script
         type="application/ld+json"
         // Static, server-built JSON; no user input

@@ -1,97 +1,81 @@
 import { z } from 'zod';
 
 /**
- * Validation shared by the form (client) and the API route (server).
+ * "Apply to speak" validation, shared by the form (client) and the API route (server).
  * Error messages are codes; the UI maps them to localised copy.
  */
-export const SECTORS = ['ai', 'cloud', 'fintech', 'healthtech', 'digital-services', 'other'] as const;
-export const STAGES = ['idea', 'prototype', 'early-revenue', 'growth'] as const;
-export const INVESTOR_TYPES = ['vc', 'angel', 'cvc', 'accelerator', 'other'] as const;
+export const LIMITS = {
+  fullName: { min: 2, max: 120 },
+  jobTitle: { min: 2, max: 160 },
+  expertise: { min: 2, max: 160 },
+  company: { min: 2, max: 160 },
+  linkedinUrl: { min: 1, max: 300 },
+  bio: { min: 50, max: 1500 },
+} as const;
 
-export const LIMITS = { name: 120, email: 200, phone: 30, org: 160, url: 300, pitch: 280 } as const;
+export type FieldName = keyof typeof LIMITS;
 
-export type ErrorCode = 'required' | 'email' | 'phone' | 'url' | 'tooLong' | 'consent' | 'chooseOne';
+const ERROR_CODES = ['required', 'tooShort', 'tooLong', 'linkedin'] as const;
+export type ErrorCode = (typeof ERROR_CODES)[number];
 
-const text = (max: number) =>
+const text = ({ min, max }: { min: number; max: number }) =>
   z
     .string({ error: 'required' })
     .trim()
     .min(1, { error: 'required' })
+    .min(min, { error: 'tooShort' })
     .max(max, { error: 'tooLong' });
 
-const phone = z
+/** True for an http(s) link to a page on linkedin.com (any subdomain, e.g. www. or sa.). */
+export function isLinkedInUrl(value: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(value);
+  } catch {
+    return false;
+  }
+  const host = u.hostname.toLowerCase();
+  return (
+    (u.protocol === 'https:' || u.protocol === 'http:') &&
+    (host === 'linkedin.com' || host.endsWith('.linkedin.com')) &&
+    !u.username &&
+    !u.password &&
+    u.pathname.length > 1
+  );
+}
+
+/** People often paste "linkedin.com/in/name" without the scheme; accept it and add https://. */
+const linkedinUrl = z
   .string({ error: 'required' })
   .trim()
   .min(1, { error: 'required' })
-  .max(LIMITS.phone, { error: 'tooLong' })
-  .refine((v) => /^\+?[\d\s()-]+$/.test(v) && (v.match(/\d/g)?.length ?? 0) >= 8 && (v.match(/\d/g)?.length ?? 0) <= 15, {
-    error: 'phone',
-  });
+  .max(LIMITS.linkedinUrl.max, { error: 'tooLong' })
+  .transform((v) => (/^[a-z][a-z\d+.-]*:/i.test(v) ? v : `https://${v}`))
+  .refine(isLinkedInUrl, { error: 'linkedin' });
 
-const email = z
-  .string({ error: 'required' })
-  .trim()
-  .min(1, { error: 'required' })
-  .max(LIMITS.email, { error: 'tooLong' })
-  .pipe(z.email({ error: 'email' }));
-
-/** Required http(s) link */
-const url = z
-  .string({ error: 'required' })
-  .trim()
-  .min(1, { error: 'required' })
-  .max(LIMITS.url, { error: 'tooLong' })
-  .refine((v) => /^https?:\/\/[^\s.]+\.[^\s]+$/i.test(v), { error: 'url' });
-
-const website = url;
-const pitchDeck = url;
-
-const consent = z.literal(true, { error: 'consent' });
-
-const common = {
+export const speakerApplicationSchema = z.object({
   locale: z.enum(['en', 'ar']),
-  fullName: text(LIMITS.name),
-  email,
-  phone,
-  consent,
+  fullName: text(LIMITS.fullName),
+  jobTitle: text(LIMITS.jobTitle),
+  expertise: text(LIMITS.expertise),
+  company: text(LIMITS.company),
+  linkedinUrl,
+  bio: text(LIMITS.bio),
   // Honeypot: real people never fill this hidden field
   company_url: z.string().max(500).optional(),
-};
-
-export const startupSchema = z.object({
-  kind: z.literal('startup'),
-  ...common,
-  startupName: text(LIMITS.org),
-  website,
-  sector: z.enum(SECTORS, { error: 'required' }),
-  stage: z.enum(STAGES, { error: 'required' }),
-  pitch: text(LIMITS.pitch),
-  pitchDeck,
 });
 
-export const investorSchema = z.object({
-  kind: z.literal('investor'),
-  ...common,
-  organisation: text(LIMITS.org),
-  role: text(LIMITS.org),
-  investorType: z.enum(INVESTOR_TYPES, { error: 'required' }),
-});
+export type SpeakerApplicationInput = z.input<typeof speakerApplicationSchema>;
+export type SpeakerApplication = z.output<typeof speakerApplicationSchema>;
 
-export const applicationSchema = z.discriminatedUnion('kind', [startupSchema, investorSchema]);
-
-export type ApplicationInput = z.input<typeof applicationSchema>;
-export type Application = z.output<typeof applicationSchema>;
-
-/** Flattens zod issues to { fieldName: ErrorCode }. */
+/** Flattens zod issues to { fieldName: ErrorCode }, keeping the first issue per field. */
 export function toFieldErrors(error: z.ZodError): Record<string, ErrorCode> {
   const out: Record<string, ErrorCode> = {};
   for (const issue of error.issues) {
     const key = String(issue.path[0] ?? 'form');
     if (out[key]) continue;
     const code = issue.message as ErrorCode;
-    out[key] = (['required', 'email', 'phone', 'url', 'tooLong', 'consent', 'chooseOne'] as const).includes(code)
-      ? code
-      : 'required';
+    out[key] = (ERROR_CODES as readonly string[]).includes(code) ? code : 'required';
   }
   return out;
 }

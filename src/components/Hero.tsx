@@ -1,5 +1,4 @@
 import type { Content } from '@/content/types';
-import { SITE } from '@/lib/site';
 import { ButtonLink } from './Button';
 import { Countdown } from './Countdown';
 import styles from './Hero.module.css';
@@ -68,13 +67,8 @@ export function Hero({ c, en, ar }: Props) {
           </dl>
 
           <div className={styles.ctas}>
-            {/* The headline is Demo Day, so applying to pitch is the main action */}
-            <ButtonLink href="#demo-day" data-form="startup">
-              {c.hero.ctaSecondary}
-            </ButtonLink>
-            <ButtonLink href={SITE.links.tickets} variant="secondary" external newTabLabel={c.a11y.opensNewTab}>
-              {c.ctaTicket}
-            </ButtonLink>
+            {/* Single action: every CTA on the page leads to the "Apply to speak" form */}
+            <ButtonLink href="#apply">{c.ctaApply}</ButtonLink>
           </div>
         </div>
       </div>

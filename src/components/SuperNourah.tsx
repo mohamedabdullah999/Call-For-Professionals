@@ -1,5 +1,4 @@
 import type { Content } from '@/content/types';
-import { SITE } from '@/lib/site';
 import { ButtonLink } from './Button';
 import styles from './SuperNourah.module.css';
 
@@ -20,8 +19,8 @@ export function SuperNourah({ c }: { c: Content }) {
             {s.heading}
           </h2>
           <p className={styles.body}>{s.body}</p>
-          <ButtonLink href={SITE.links.tickets} variant="secondary" className={styles.cta} external newTabLabel={c.a11y.opensNewTab}>
-            {s.cta}
+          <ButtonLink href="#apply" variant="secondary" className={styles.cta}>
+            {c.ctaApply}
           </ButtonLink>
         </div>
       </div>
