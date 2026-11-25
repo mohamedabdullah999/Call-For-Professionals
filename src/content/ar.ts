@@ -80,7 +80,7 @@ const ar: Content = {
       },
     },
     counter: {
-      belowMin: 'باقي {n} حرفًا على الأقل',
+      belowMin: 'المتبقي للوصول إلى الحد الأدنى: {n}',
       count: '\u2066{n} / {max}\u2069 حرف',
     },
     submit: 'أرسل الطلب',
@@ -92,7 +92,7 @@ const ar: Content = {
     privacyNote: 'نستخدم هذه البيانات لمراجعة طلب مشاركتك متحدثًا والتواصل معك بخصوصه فقط.',
     errors: {
       required: 'املأ هذا الحقل.',
-      tooShort: 'اكتب {min} أحرف على الأقل.',
+      tooShort: 'عدد الأحرف أقل من الحد الأدنى ({min}).',
       tooLong: 'اجعل النص أقل من {max} حرفًا.',
       linkedin: 'اكتب رابط حسابك في لينكدإن، مثل \u2066https://www.linkedin.com/in/your-name\u2069',
       summary: 'بعض الحقول تحتاج إلى مراجعة.',

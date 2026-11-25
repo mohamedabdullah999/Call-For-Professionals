@@ -83,7 +83,7 @@ const en: Content = {
       },
     },
     counter: {
-      belowMin: '{n} more characters needed',
+      belowMin: '{n} more to reach the minimum',
       count: '{n} / {max} characters',
     },
     submit: 'Send application',

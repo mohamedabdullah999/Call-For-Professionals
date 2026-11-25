@@ -207,10 +207,10 @@ export function ApplicationForm({ c }: { c: Pick<Content, 'locale' | 'form'> }) 
 
             <div className={styles.row}>
               {field({ name: 'jobTitle' }, input('jobTitle', { autoComplete: 'organization-title' }))}
-              {field({ name: 'company' }, input('company', { autoComplete: 'organization' }))}
+              {field({ name: 'expertise' }, input('expertise'))}
             </div>
 
-            {field({ name: 'expertise' }, input('expertise'))}
+            {field({ name: 'company' }, input('company', { autoComplete: 'organization' }))}
 
             {field(
               { name: 'linkedinUrl', hint: f.fields.linkedinUrl.hint },
