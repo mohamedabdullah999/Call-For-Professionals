@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { montserrat, plexArabic } from '@/lib/fonts';
 import '@/styles/globals.css';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Page not found | Experts Live Saudi 2026',
@@ -22,12 +23,12 @@ export default function GlobalNotFound() {
             هذه الصفحة غير موجودة. ربما الرابط قديم أو فيه خطأ.
           </p>
           <p style={{ display: 'flex', gap: 'var(--space-5)' }}>
-            <a href="/en" style={{ color: 'var(--cyan)' }}>
+            <Link href="/en" style={{ color: 'var(--cyan)' }}>
               Go to the English page
-            </a>
-            <a href="/ar" lang="ar" style={{ color: 'var(--cyan)', fontFamily: 'var(--font-ar-body)' }}>
+            </Link>
+            <Link href="/ar" lang="ar" style={{ color: 'var(--cyan)', fontFamily: 'var(--font-ar-body)' }}>
               الصفحة العربية
-            </a>
+            </Link>
           </p>
         </main>
       </body>
