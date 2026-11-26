@@ -142,10 +142,6 @@ const ar: Content = {
     heading: 'بالشراكة مع',
     groupTitle: 'التنظيم',
   },
-  partnerCta: {
-    heading: 'ادعُ عملاءك، والتقِ بهم في جناحك.',
-    body: 'كن شريكًا لإكسبيرتس لايف السعودية، وضع فريقك أمام أكثر من 1,000 زائر، منهم أكثر من 500 من القيادات التنفيذية وقادة الاقتصاد الرقمي.',
-  },
   footer: {
     line: 'Experts Live Saudi · PNU, Riyadh · 29–30 Nov 2026 · Presented by ZAT.VC & Cloud Mechanics · In partnership with Microsoft, MCIT, PNU & AI Chair',
     contact: 'تواصل معنا',

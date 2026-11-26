@@ -7,7 +7,6 @@ import { Facts } from '@/components/Facts';
 import { Apply } from '@/components/Apply';
 import { Programme } from '@/components/Programme';
 import { Partners } from '@/components/Partners';
-import { PartnerCta } from '@/components/PartnerCta';
 import { Footer } from '@/components/Footer';
 import { MobileBar } from '@/components/MobileBar';
 
@@ -65,7 +64,6 @@ export default async function Page({ params }: PageProps<'/[locale]'>) {
         <Programme c={c} />
         {/* Speakers slot: the section is removed for now and will be replaced with new content here (src/components/Speakers.tsx kept for reference). */}
         <Partners c={c} />
-        <PartnerCta c={c} />
       </main>
       <Footer c={c} />
       <MobileBar c={{ mobileBar: c.mobileBar, ctaApply: c.ctaApply }} />

@@ -145,10 +145,6 @@ const en: Content = {
     heading: 'Organised with',
     groupTitle: 'Organised by',
   },
-  partnerCta: {
-    heading: 'Invite your clients. Meet them at your booth.',
-    body: 'Partner with Experts Live Saudi and put your team in front of 1,000+ visitors, 500+ of them C-level and digital economy leaders.',
-  },
   footer: {
     line: 'Experts Live Saudi · PNU, Riyadh · 29–30 Nov 2026 · Presented by ZAT.VC & Cloud Mechanics · In partnership with Microsoft, MCIT, PNU & AI Chair',
     contact: 'Talk to us',

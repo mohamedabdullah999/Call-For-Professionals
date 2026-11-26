@@ -131,10 +131,6 @@ export interface Content {
     /** Logos and their order live in src/lib/organisers.ts */
     groupTitle: string;
   };
-  partnerCta: {
-    heading: string;
-    body: string;
-  };
   footer: {
     line: string;
     contact: string;
